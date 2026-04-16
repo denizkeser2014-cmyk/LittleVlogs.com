@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Benim Blogum</title>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+
+  <style>
+    body { font-family: Arial; max-width: 800px; margin: auto; }
+    .post { border-bottom: 1px solid #ccc; padding: 10px; }
+    #adminPanel { display: none; margin-top: 20px; }
+  </style>
+</head>
+
+<body>
+
+<h1>📘 Blog</h1>
+
+<!-- LOGIN -->
+<div id="loginBox">
+  <input id="email" placeholder="Email">
+  <input id="password" type="password" placeholder="Şifre">
+  <button onclick="login()">Giriş Yap</button>
+</div>
+
+<!-- ADMIN PANEL -->
+<div id="adminPanel">
+  <h3>Yeni Yazı Ekle</h3>
+  <input id="title" placeholder="Başlık"><br><br>
+  <textarea id="content" placeholder="Yazı"></textarea><br><br>
+  <button onclick="addPost()">Yayınla</button>
+</div>
+
+<hr>
+
+<!-- POSTLAR -->
+<div id="posts"></div>
+
+<script>
+  // 🔥 Firebase config (BURAYI SEN DOLDURACAKSIN)
+  const firebaseConfig = {
+    apiKey: "XXX",
+    authDomain: "XXX",
+    projectId: "XXX",
+  };
+
+  firebase.initializeApp(firebaseConfig);
+  const auth = firebase.auth();
+  const db = firebase.firestore();
+
+  // 🔐 SADECE SENİN GİRİŞİN
+  const adminEmail = "seninmail@gmail.com";
+
+  function login() {
+    auth.signInWithEmailAndPassword(
+      document.getElementById("email").value,
+      document.getElementById("password").value
+    ).then(user => {
+      if (user.user.email === adminEmail) {
+        document.getElementById("adminPanel").style.display = "block";
+      }
+    }).catch(err => alert(err.message));
+  }
+
+  // ➕ YAZI EKLE
+  function addPost() {
+    db.collection("posts").add({
+      title: document.getElementById("title").value,
+      content: document.getElementById("content").value,
+      time: Date.now()
+    });
+  }
+
+  // 📄 YAZILARI ÇEK
+  db.collection("posts").orderBy("time", "desc")
+    .onSnapshot(snapshot => {
+      let html = "";
+      snapshot.forEach(doc => {
+        let p = doc.data();
+        html += `<div class="post">
+          <h3>${p.title}</h3>
+          <p>${p.content}</p>
+        </div>`;
+      });
+      document.getElementById("posts").innerHTML = html;
+    });
+</script>
+
+</body>
+</html>
